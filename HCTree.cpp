@@ -1,15 +1,13 @@
-
 /*FILE HEADER
  * Ashley Eckert, aeckert@ucsd.edu
- * this file includes the DictionaryTrie class which I chose 
- * to be a ternary search trie. it stores words and how many
- * times those words are likely to appear. The user then can use
- * this to determine if a word is likely to be next*/
-
-/*CLASS HEADER
- *The Dictionary Trie Class is used to store TrieNodes that create
- * words.
- */
+* This file includes methods for the HCTree class. It has a build method
+* which is called by compress, which is used to build a huffman tree to
+* encode the symbols. it does this using a priority queue of nodes. 
+*It then has a rebuild function that uses an algorithm to recreate that 
+*same tree, using 0's and 1's to indicate the state of each node
+*it also has a write header method to write out to the output file
+*the encoded tree.
+*/
 
 
 #include "HCTree.hpp"
@@ -109,7 +107,6 @@ void HCTree::rebuild(HCNode* curr, BitInputStream& infile, int headersize, int r
 	int bytelength = 8;
 	
 	int bit = infile.readBitOnesZeros(); /*read in the bit*/
-cout << "DEBUGGING BITS: " << bit << endl;
 	
 	headerBitsRead++; /*keep track of how much of header you've read*/
 
@@ -136,7 +133,6 @@ cout << "DEBUGGING BITS: " << bit << endl;
 		for(int i = 0; i < bytelength; i++) {
 			int bittt = infile.readBitOnesZeros();
 			symbolBuf = symbolBuf ^ (bittt << (7-i));
-cout << "DEBUGGING BITS: " << bittt << endl;
 			headerBitsRead++;
 		}
 
@@ -145,8 +141,9 @@ cout << "DEBUGGING BITS: " << bittt << endl;
 		return;
 	}	
 
+	/*when it's not a leaf node*/
 	else if(bit == 0) {
-		if(!root) {
+		if(!root) { /*first node, make root*/
 		this->root = new HCNode(0,0,0,0,0);
 		curr = root;
 		}	
@@ -172,7 +169,9 @@ cout << "DEBUGGING BITS: " << bittt << endl;
 	}
 }
 
-
+/*this method counts how many bits will be in the encoded string.
+ * it does this by doing the same thing as encoding the string, but
+ * instead of writing out the bits it just counts them*/
 int HCTree::countBits(int symbol) {
 	/*create nodes to use when encoding*/
 	HCNode* parentNode;
@@ -206,6 +205,10 @@ int HCTree::countBits(int symbol) {
 	return bitCount * frequency;
 }
 
+
+/*write out an entire 8 bit char to the output file, is easy and useful
+ * for the first 4 bytes we need to read from the infile, which represent
+ * the size of each part of the encoded string*/
 void HCTree::writeByte(int totalbits, BitOutputStream& out) {
 
 	/*write out each bit of the symbol*/
@@ -215,6 +218,10 @@ void HCTree::writeByte(int totalbits, BitOutputStream& out) {
 }
 
 
+/*this method basically uses the leaves vector and traverses up and
+ * then back down recursively, popping 0's and 1's from a priority queue
+ * into a bit buffer and then printing that buffer out to the outfile 
+ * when done. */
 void HCTree::encode(byte symbol, BitOutputStream& out) {
 	/*create nodes to use when encoding*/
 	HCNode* parentNode;
@@ -241,7 +248,6 @@ void HCTree::encode(byte symbol, BitOutputStream& out) {
 		/*instead of just putting into the file, call this 
 		* function to encode the BIT*/
 		out.writeBit(code.back());
-cout << "debigging bits: " << code.back();	
 		code.pop_back();
 	}/*end of encoding for 1 char*/
 

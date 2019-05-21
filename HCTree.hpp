@@ -58,50 +58,43 @@ public:
      */
     void encode(byte symbol, BitOutputStream& out);
 
-    /** Write to the given ofstream
-     *  the sequence of bits (as ASCII) coding the given symbol.
-     *  PRECONDITION: build() has been called, to create the coding
-     *  tree, and initialize root pointer and leaves vector.
-     *  THIS METHOD IS USEFUL FOR THE CHECKPOINT BUT SHOULD NOT
-     *  BE USED IN THE FINAL SUBMISSION.
-     */
-//    void encode(byte symbol, ofstream& out) const;
+    /*this write out entire 8 bit buffers to the output stream,
+    *so we don't need to call writebit individually on
+    *each bit
+    * */
+    void writeByte(int totalbits, BitOutputStream& out);
+
+    /* this counts how many bits will be in the encoded part
+    * of the file.
+    * */
+    int countBits(int symbol);
 
 
-    /** Return symbol coded in the next sequence of bits from the stream.
-     *  PRECONDITION: build() has been called, to create the coding
-     *  tree, and initialize root pointer and leaves vector.
-     */
-//    int decode(BitInputStream& in) const;
+    /* this counts how many bits we will need to read in as part  
+    * of the header
+    * */
+    void countHeader(HCNode* curr);
 
-    /** Return the symbol coded in the next sequence of bits (represented as
-     *  ASCII text) from the ifstream.
-     *  PRECONDITION: build() has been called, to create the coding
-     *  tree, and initialize root pointer and leaves vector.
-     *  THIS METHOD IS USEFUL FOR THE CHECKPOINT BUT SHOULD NOT BE USED
-     *  IN THE FINAL SUBMISSION.
-     */
-//    int decode(ifstream& in) const;
-
-	//void encode(byte symbol, BitOutputStream& out);
-
-	void writeByte(int totalbits, BitOutputStream& out);
-	int countBits(int symbol);
-
-	void countHeader(HCNode* curr);
-	void writeHeader(HCNode* curr, BitOutputStream & out); 
-
-	HCNode* getRoot() {
-		return root;
-	}
 	
-	int getHeaderLength() {
-		return headerlength;
-	}
+    /* this function actually writes out all the bits of the header out 
+    * and stops aftr headersize bits.
+    * */
+    void writeHeader(HCNode* curr, BitOutputStream & out); 
 
-	vector<HCNode*> getLeaves() {
-		return leaves;
-	}
+    /*returns a referense to the root node of the tree*/
+    HCNode* getRoot() {
+	return root;
+    }
+
+    /*traverses the header and sees how long it will need to be*/	
+    int getHeaderLength() {
+	return headerlength;
+    }
+
+    /*returns a reference to the leaves vector*/
+    vector<HCNode*> getLeaves() {
+	return leaves;
+    }
 };
 
 #endif // HCTREE_H

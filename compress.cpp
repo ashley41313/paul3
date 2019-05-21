@@ -1,3 +1,12 @@
+/*FILE HEADER
+ * ashley eckert aeckert@ucsd.edu
+ * This file is a main method called such as ./compress file1 file2
+ * it encodes the file1 using a huffman tree and calling certain
+ * method from the huffman tree class. It encodes bit by bit 
+ * into the file 2 using the bitoutputstream classes.
+ * */
+
+
 #include "HCTree.hpp"
 #include "HCNode.hpp"
 #include <vector>
@@ -39,7 +48,7 @@ void compress(std::string inFile, std::string outFile) {
 
 	in.close();/*CLOSE THE FILE*/
 
-/*BUILD TREE*/
+	/*BUILD TREE*/
 	HCTree* hc = new HCTree();
 	hc->HCTree::build(freqs);
 
@@ -68,11 +77,6 @@ void compress(std::string inFile, std::string outFile) {
 
 	int encodepadding = bytelength - (totalbits %  bytelength); 
 	int encodebytes = (totalbits + encodepadding) / bytelength;
-/*DEBUGU*/
-	cout << "headersize: " << headerbytes << endl;
-	cout << "headerpadding: " << headerpadding << endl;
-	cout << "encodesize: " << encodebytes << endl;
-	cout << "encodepadding: " << encodepadding << endl;
 
 	/*write out the size of each part of the stream*/
 	outStream->writeNumBits(headerbytes);
@@ -81,11 +85,14 @@ void compress(std::string inFile, std::string outFile) {
 	outStream->writeNumBits(encodepadding);
 
 	hc->HCTree::writeHeader(start, *outStream); 
-	outStream->flush();
-	
+
+	if(headerpadding != 0) { /*if there's padding, flush*/
+		outStream->flush();
+	}
+
 	in.open(inFile);
 	
-/*CALL ENCODE*/
+	/*CALL ENCODE*/
 	while(in.get(c)) {
 		hc->HCTree::encode(c, *outStream);
 	}	
@@ -106,4 +113,4 @@ int main(int argc, char** argv) {
 	}
 	compress(argv[1], argv[2]);
 	return 1;
-}
+}	

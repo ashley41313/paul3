@@ -1,3 +1,9 @@
+/*FILE HEADER: 
+ * ashley eckert aeckert@ucsd.edu
+ * this file has the uncompress method which is used to decode 
+ * a file1 into an original text file2. It does this by calling 
+ *  rebuild and building a huffman tree from encoded bits in file 1*/
+
 #include "HCTree.hpp"
 #include "HCNode.hpp"
 #include <vector>
@@ -21,47 +27,34 @@ void uncompress(std::string inFile, std::string outFile) {
 	int bytelength = 8;
 
 	std::ifstream in(inFile); /*open the file and attatch to a stream*/
-	vector<int> freqs = vector<int>(256, 0); /*create vector to build tree*/
-	std::string nextLine; /*will be used to traverse input file*/
-
 	BitInputStream * infile = new BitInputStream(in);
 
-/*GET THE SIZE OF EAHC PART OF THE STREAM*/
-	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BYTES WILL BE IN THE HEADER*/
+	/*GET THE SIZE OF EAHC PART OF THE STREAM*/
+	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BYTES WILL BE IN THE H*/
 	unsigned int headersize = 0;
 	for(int i = 0; i < bytelength; i++) {
 		headersize = headersize ^ infile->readBit();
 	} 
-	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BITS WILL BE IN THE HEADERS PAD*/
+	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BITS WILL BE IN THE HPAD*/
 	unsigned int headerpadding = 0;
 	for(int i = 0; i < bytelength; i++) {
 		headerpadding = headerpadding ^ infile->readBit();
 	} 
 	
-	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BYTES WILL BE IN THE ENCODE*/
+	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BYTES WILL BE IN ENCODE*/
 	unsigned int encodesize = 0;
 	for(int i = 0; i < bytelength; i++) {
 		encodesize = encodesize ^ infile->readBit();
 	} 
-	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BITS WILL BE IN THE ENCODE PAD*/
+	/*READ THE FIRST 8 BITS TO FIND OUT HOW MANY BITS WILL BE INENCODE*/
 	unsigned int encodepadding = 0;
 	for(int i = 0; i < bytelength; i++) {
 		encodepadding = encodepadding ^ infile->readBit();
 	} 
 
-/*DEBUG STATEMENT*/
-	cout << "headersize: " << headersize << endl;
-	cout << "headerpadding: " << headerpadding << endl;
-	cout << "encodesize: " << encodesize << endl;
-	cout << "encodepadding: " << encodepadding << endl;
-
 	/*numfer of bits to read for the header*/
 	int headerbits = (headersize * bytelength) - headerpadding;
 	int encodebits = (encodesize * bytelength) - encodepadding;
-
-	cout << "header # of bits: " << headerbits << endl;
-	cout << "encode # of bits: " << encodebits << endl;
-
 	/*build the tree using the vector*/
 	HCTree* hc = new HCTree();
 	HCNode * newRoot = hc->HCTree::getRoot();
@@ -70,25 +63,18 @@ void uncompress(std::string inFile, std::string outFile) {
 	/*loop through the padding for the header bits*/
 	for(int i = 0; i < headerpadding; i++) {
 		int bitt = infile->readBit();
-cout << "DEBUG, this is the padding we're reading over: " << bitt << endl;
 	}
-
-/*TEST REBUILD*/
-	HCNode * curr = hc->HCTree::getRoot();
-	cout << "This should be a: " << curr->c0->symbol << endl;
-	cout << "this should be s: " << curr->c1->c1->c0->symbol << endl;
-	cout << "this should be h: " << curr->c1->c1->c1->symbol << endl;
 
 	ofstream out; /*create stream to writeo ut to*/
 	/*open output file and write out the vector to rebuild later*/
 	out.open(outFile);
 	HCNode* start;
-/*write out the decoded string*/
+
+	/*write out the decoded string*/
 	for(int i = 0; i < encodebits;) {
 		start = hc->HCTree::getRoot();
 		while(start->c0 && start->c1) {
 			int bit = infile->readBitOnesZeros();
-cout << "DEBUGGING BITS: " << bit << endl;
 			i++;
 			if(bit == 0) {
 				start = start->c0;
@@ -97,8 +83,6 @@ cout << "DEBUGGING BITS: " << bit << endl;
 				start = start->c1;
 			}
 		}
-
-cout << "DEBUGGING, this is symbol: " << start->symbol << endl;
 		out << start->symbol;
 	}
 
